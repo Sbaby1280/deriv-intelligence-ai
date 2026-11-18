@@ -205,7 +205,7 @@ function runStrategyBacktest() {
     return;
   }
 
-  const data = candles;
+  const data = window.getMarketCandles ? window.getMarketCandles() : [];
   const closes = data.map(c => c.close);
   const results = [];
   let equity = 0;
