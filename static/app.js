@@ -26,8 +26,19 @@ function connect() {
     let msg; try { msg = JSON.parse(event.data); } catch { return; }
     if (msg.error) { console.warn("Deriv API:", msg.error.message); return; }
     if (msg.msg_type === "active_symbols" && Array.isArray(msg.active_symbols)) {
-      symbols = msg.active_symbols.filter(isSynthetic);
-      renderMarkets();
+  symbols = msg.active_symbols.map(s => ({
+    ...s,
+    symbol: s.underlying_symbol,
+    display_name: s.underlying_symbol_name,
+    symbol_type: s.underlying_symbol_type,
+    pip: s.pip_size,
+    market_display_name: s.market,
+    submarket_display_name: s.submarket,
+    subgroup_display_name: s.subgroup
+  })).filter(isSynthetic);
+
+  renderMarkets();
+}
       if (!selectedSymbol && symbols.length) selectMarket(symbols[0].symbol);
     }
     if (msg.msg_type === "history" && msg.history && msg.candles) {
