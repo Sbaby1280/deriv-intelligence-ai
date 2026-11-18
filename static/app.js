@@ -205,23 +205,43 @@ function runStrategyBacktest() {
     ? window.getMarketCandles()
     : [];
 
+  const status = document.getElementById("btStatus");
+  const getEMA = window.runEMA;
+  const getRSI = window.runRSI;
+
   if (data.length < 50) {
-    document.getElementById("btStatus").textContent = "Not enough candles. Load at least 50 candles first.";
+    status.textContent = "Load at least 50 candles first.";
     return;
   }
- const closes = data.map(c => c.close);
-  const results = [];
+
+  if (typeof getEMA !== "function" || typeof getRSI !== "function") {
+    status.textContent = "EMA or RSI calculation is unavailable.";
+    return;
+  }
+
+  const closes = data.map(c => c.close);
+  const trades = [];
+
   let equity = 0;
   let peak = 0;
   let maxDrawdown = 0;
   let grossProfit = 0;
   let grossLoss = 0;
+  let i = 35;
 
-  for (let i = 35; i < data.length - 2; i++) {
+  while (i < data.length - 1) {
     const history = closes.slice(0, i + 1);
-    const fast = window.runEMA(history, 9);
-    const slow = window.runEMA(history, 21);
-    const rv = window.runRSI(history);
+
+    const fast = getEMA(history, 9);
+    const slow = getEMA(history, 21);
+    const rv = getRSI(history);
+
+    if (!Number.isFinite(fast) ||
+        !Number.isFinite(slow) ||
+        !Number.isFinite(rv)) {
+      i++;
+      continue;
+    }
 
     const momentum = closes[i] - closes[i - 3];
 
@@ -233,67 +253,89 @@ function runStrategyBacktest() {
       direction = "SELL";
     }
 
-    if (!direction) continue;
+    if (!direction) {
+      i++;
+      continue;
+    }
 
-    // Entry occurs at the next candle's open.
-    const entry = data[i + 1].open;
-    const atrWindow = data.slice(i - 13, i + 1);
-    const atr = atrWindow.reduce((sum, c) => sum + (c.high - c.low), 0) / atrWindow.length;
+    // Enter at the next candle's open.
+    const entryIndex = i + 1;
+    const entry = data[entryIndex].open;
 
-    if (!Number.isFinite(atr) || atr <= 0) continue;
+    // Simple average candle range as an ATR approximation.
+    const window = data.slice(i - 13, i + 1);
+    const atr = window.reduce(
+      (sum, c) => sum + c.high - c.low, 0
+    ) / window.length;
+
+    if (!Number.isFinite(atr) || atr <= 0) {
+      i++;
+      continue;
+    }
 
     const stopDistance = atr * 1.5;
     const targetDistance = atr * 2;
+    const stop = direction === "BUY"
+      ? entry - stopDistance
+      : entry + stopDistance;
+    const target = direction === "BUY"
+      ? entry + targetDistance
+      : entry - targetDistance;
+
     let exit = null;
-    let outcome = "TIME EXIT";
+    let exitReason = "";
+    let exitIndex = entryIndex;
 
     // Maximum holding period: 10 candles.
-    for (let j = i + 1; j < Math.min(i + 11, data.length); j++) {
-      const candle = data[j];
+    const lastIndex = Math.min(entryIndex + 9, data.length - 1);
 
+    for (let j = entryIndex; j <= lastIndex; j++) {
+      const c = data[j];
+
+      // If both levels are touched, assume the stop was hit first.
       if (direction === "BUY") {
-        const stop = entry - stopDistance;
-        const target = entry + targetDistance;
-
-        // Conservative assumption: if both are touched, count the stop first.
-        if (candle.low <= stop) {
+        if (c.low <= stop) {
           exit = stop;
-          outcome = "STOP LOSS";
-          break;
-        }
-        if (candle.high >= target) {
+          exitReason = "STOP LOSS";
+        } else if (c.high >= target) {
           exit = target;
-          outcome = "TAKE PROFIT";
-          break;
+          exitReason = "TAKE PROFIT";
         }
       } else {
-        const stop = entry + stopDistance;
-        const target = entry - targetDistance;
-
-        if (candle.high >= stop) {
+        if (c.high >= stop) {
           exit = stop;
-          outcome = "STOP LOSS";
-          break;
-        }
-        if (candle.low <= target) {
+          exitReason = "STOP LOSS";
+        } else if (c.low <= target) {
           exit = target;
-          outcome = "TAKE PROFIT";
-          break;
+          exitReason = "TAKE PROFIT";
         }
       }
 
-      if (j === Math.min(i + 10, data.length - 1)) {
-        exit = candle.close;
+      if (exit !== null) {
+        exitIndex = j;
+        break;
+      }
+
+      if (j === lastIndex) {
+        exit = c.close;
+        exitReason = "TIME EXIT";
+        exitIndex = j;
       }
     }
 
-    if (exit === null) continue;
+    if (exit === null) break;
 
     const pnl = direction === "BUY"
       ? exit - entry
       : entry - exit;
 
-    results.push({ direction, entry, exit, pnl, outcome });
+    trades.push({
+      direction,
+      entry,
+      exit,
+      pnl,
+      reason: exitReason
+    });
 
     equity += pnl;
     peak = Math.max(peak, equity);
@@ -301,35 +343,56 @@ function runStrategyBacktest() {
 
     if (pnl > 0) grossProfit += pnl;
     if (pnl < 0) grossLoss += Math.abs(pnl);
+
+    // Do not open another trade while this one is active.
+    i = exitIndex;
   }
 
-  const wins = results.filter(r => r.pnl > 0).length;
-  const losses = results.filter(r => r.pnl < 0).length;
-  const winRate = results.length ? wins / results.length * 100 : 0;
+  const wins = trades.filter(t => t.pnl > 0).length;
+  const losses = trades.filter(t => t.pnl < 0).length;
+  const winRate = trades.length ? wins / trades.length * 100 : 0;
+
   const profitFactor = grossLoss > 0
     ? grossProfit / grossLoss
     : grossProfit > 0 ? Infinity : 0;
 
-  document.getElementById("btTrades").textContent = results.length;
-  document.getElementById("btWinRate").textContent = results.length ? winRate.toFixed(1) + "%" : "—";
-  document.getElementById("btNet").textContent = equity.toPrecision(5);
-  document.getElementById("btDrawdown").textContent = maxDrawdown.toPrecision(5);
+  const buyTrades = trades.filter(t => t.direction === "BUY");
+  const sellTrades = trades.filter(t => t.direction === "SELL");
+
+  const buyWins = buyTrades.filter(t => t.pnl > 0).length;
+  const sellWins = sellTrades.filter(t => t.pnl > 0).length;
+
+  const fmt = n => Number(n).toFixed(3);
+
+  document.getElementById("btTrades").textContent = trades.length;
+  document.getElementById("btWinRate").textContent =
+    trades.length ? winRate.toFixed(1) + "%" : "—";
+  document.getElementById("btNet").textContent = fmt(equity);
+  document.getElementById("btDrawdown").textContent = fmt(maxDrawdown);
   document.getElementById("btProfitFactor").textContent =
     profitFactor === Infinity ? "∞" : profitFactor.toFixed(2);
-  document.getElementById("btAverage").textContent = results.length
-    ? (equity / results.length).toPrecision(5)
-    : "—";
+  document.getElementById("btAverage").textContent =
+    trades.length ? fmt(equity / trades.length) : "—";
 
-  document.getElementById("btStatus").textContent =
-    `${wins} winning trades · ${losses} losing trades · ${results.length} total`;
+  status.textContent =
+    `${wins} wins · ${losses} losses · ${trades.length} trades · ${data.length} candles`;
 
-  document.getElementById("btDetails").innerHTML = results.slice(-10).reverse().map(r => `
-    <div class="backtest-result">
-      <strong>${r.direction}</strong>
-      <span>${r.outcome}</span>
-      <span>${r.pnl.toPrecision(5)}</span>
-    </div>
-  `).join("") || "No qualifying trades found in this candle sample.";
+  document.getElementById("btDetails").innerHTML = `
+    <p><strong>BUY:</strong> ${buyTrades.length} trades,
+    ${buyTrades.length ? (buyWins / buyTrades.length * 100).toFixed(1) : 0}% wins</p>
+    <p><strong>SELL:</strong> ${sellTrades.length} trades,
+    ${sellTrades.length ? (sellWins / sellTrades.length * 100).toFixed(1) : 0}% wins</p>
+    <p><strong>Gross profit:</strong> ${fmt(grossProfit)}</p>
+    <p><strong>Gross loss:</strong> ${fmt(grossLoss)}</p>
+    <p><strong>Recent trades:</strong></p>
+    ${trades.slice(-10).reverse().map(t => `
+      <div class="backtest-result">
+        <strong>${t.direction}</strong>
+        <span>${t.reason}</span>
+        <span>${fmt(t.pnl)}</span>
+      </div>
+    `).join("") || "No qualifying trades found."}
+  `;
 }
 function connectBacktestButton() {
   const btn = document.getElementById("runBacktest");
