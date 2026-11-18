@@ -198,3 +198,134 @@ $("notifyBtn").addEventListener("click",async()=>{if(!("Notification"in window))
 $("testAlertBtn").addEventListener("click",()=>{if("Notification"in window&&Notification.permission==="granted")new Notification("Deriv Intelligence AI",{body:"Browser alert test successful."});else $("alertStatus").textContent="Enable browser alerts first."});
 initChart(); connect();
 })();
+function runStrategyBacktest() {
+  if (candles.length < 50) {
+    $("btStatus").textContent = "Not enough candles. Load at least 50 candles first.";
+    return;
+  }
+
+  const data = candles;
+  const closes = data.map(c => c.close);
+  const results = [];
+  let equity = 0;
+  let peak = 0;
+  let maxDrawdown = 0;
+  let grossProfit = 0;
+  let grossLoss = 0;
+
+  for (let i = 35; i < data.length - 2; i++) {
+    const history = closes.slice(0, i + 1);
+    const fast = ema(history, 9);
+    const slow = ema(history, 21);
+    const rv = rsi(history);
+
+    const momentum = closes[i] - closes[i - 3];
+
+    let direction = null;
+
+    if (fast > slow && rv > 50 && rv < 70 && momentum > 0) {
+      direction = "BUY";
+    } else if (fast < slow && rv < 50 && rv > 30 && momentum < 0) {
+      direction = "SELL";
+    }
+
+    if (!direction) continue;
+
+    // Entry occurs at the next candle's open.
+    const entry = data[i + 1].open;
+    const atrWindow = data.slice(i - 13, i + 1);
+    const atr = atrWindow.reduce((sum, c) => sum + (c.high - c.low), 0) / atrWindow.length;
+
+    if (!Number.isFinite(atr) || atr <= 0) continue;
+
+    const stopDistance = atr * 1.5;
+    const targetDistance = atr * 2;
+    let exit = null;
+    let outcome = "TIME EXIT";
+
+    // Maximum holding period: 10 candles.
+    for (let j = i + 1; j < Math.min(i + 11, data.length); j++) {
+      const candle = data[j];
+
+      if (direction === "BUY") {
+        const stop = entry - stopDistance;
+        const target = entry + targetDistance;
+
+        // Conservative assumption: if both are touched, count the stop first.
+        if (candle.low <= stop) {
+          exit = stop;
+          outcome = "STOP LOSS";
+          break;
+        }
+        if (candle.high >= target) {
+          exit = target;
+          outcome = "TAKE PROFIT";
+          break;
+        }
+      } else {
+        const stop = entry + stopDistance;
+        const target = entry - targetDistance;
+
+        if (candle.high >= stop) {
+          exit = stop;
+          outcome = "STOP LOSS";
+          break;
+        }
+        if (candle.low <= target) {
+          exit = target;
+          outcome = "TAKE PROFIT";
+          break;
+        }
+      }
+
+      if (j === Math.min(i + 10, data.length - 1)) {
+        exit = candle.close;
+      }
+    }
+
+    if (exit === null) continue;
+
+    const pnl = direction === "BUY"
+      ? exit - entry
+      : entry - exit;
+
+    results.push({ direction, entry, exit, pnl, outcome });
+
+    equity += pnl;
+    peak = Math.max(peak, equity);
+    maxDrawdown = Math.max(maxDrawdown, peak - equity);
+
+    if (pnl > 0) grossProfit += pnl;
+    if (pnl < 0) grossLoss += Math.abs(pnl);
+  }
+
+  const wins = results.filter(r => r.pnl > 0).length;
+  const losses = results.filter(r => r.pnl < 0).length;
+  const winRate = results.length ? wins / results.length * 100 : 0;
+  const profitFactor = grossLoss > 0
+    ? grossProfit / grossLoss
+    : grossProfit > 0 ? Infinity : 0;
+
+  $("btTrades").textContent = results.length;
+  $("btWinRate").textContent = results.length ? winRate.toFixed(1) + "%" : "—";
+  $("btNet").textContent = equity.toPrecision(5);
+  $("btDrawdown").textContent = maxDrawdown.toPrecision(5);
+  $("btProfitFactor").textContent =
+    profitFactor === Infinity ? "∞" : profitFactor.toFixed(2);
+  $("btAverage").textContent = results.length
+    ? (equity / results.length).toPrecision(5)
+    : "—";
+
+  $("btStatus").textContent =
+    `${wins} winning trades · ${losses} losing trades · ${results.length} total`;
+
+  $("btDetails").innerHTML = results.slice(-10).reverse().map(r => `
+    <div class="backtest-result">
+      <strong>${r.direction}</strong>
+      <span>${r.outcome}</span>
+      <span>${r.pnl.toPrecision(5)}</span>
+    </div>
+  `).join("") || "No qualifying trades found in this candle sample.";
+}
+
+$("runBacktest")?.addEventListener("click", runStrategyBacktest);
