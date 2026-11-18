@@ -16,3 +16,80 @@ select,input{background:#0a1524;border:1px solid var(--line);border-radius:9px;c
 .search{max-width:220px}.market-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.market-item{background:#0a1524;border:1px solid #1d2d43;border-radius:10px;padding:10px 12px;display:flex;justify-content:space-between;gap:8px;align-items:center;text-align:left;color:var(--text);cursor:pointer}.market-item.active{border-color:var(--blue);background:#173052}.market-item small{display:block;color:var(--muted);font-size:10px}.market-item b{font-size:12px}.market-item span{color:var(--blue);font-size:10px}
 .footer-panel{margin-top:14px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}footer{text-align:center;color:#64758d;font-size:10px;padding:24px 0}
 @media(max-width:700px){.wrap{padding:0 11px 28px;margin-top:14px}.topbar{height:62px;padding:0 13px}.brand strong{font-size:13px}.connection{font-size:10px}.notice{align-items:flex-start;flex-direction:column;gap:4px}.stats{grid-template-columns:1fr 1fr}.stat:first-child{grid-column:span 2}.stat strong{font-size:18px}.grid2{grid-template-columns:1fr}.panel{padding:14px}#chart{height:280px}.toolbar .btn{width:100%}.market-list{grid-template-columns:1fr}.panel-head{align-items:flex-start}.search{max-width:145px}.footer-panel .actions .btn{flex:1}}
+.backtest-panel {
+  margin-top: 18px;
+}
+
+.backtest-panel .panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.backtest-panel h2 {
+  margin: 0 0 5px;
+}
+
+.backtest-panel p {
+  color: var(--muted, #9aa4b2);
+  font-size: 12px;
+}
+
+.backtest-panel button {
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #16a36a;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.backtest-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.backtest-grid .metric {
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--card-inner, rgba(255,255,255,.05));
+  min-width: 0;
+}
+
+.backtest-grid .metric span {
+  display: block;
+  color: var(--muted, #9aa4b2);
+  font-size: 11px;
+  margin-bottom: 7px;
+}
+
+.backtest-grid .metric strong {
+  font-size: 17px;
+  overflow-wrap: anywhere;
+}
+
+#btStatus,
+#btDetails {
+  font-size: 12px;
+  color: var(--muted, #9aa4b2);
+}
+
+.backtest-result {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  font-size: 12px;
+}
+
+@media (max-width: 520px) {
+  .backtest-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
