@@ -40,8 +40,32 @@
   <section class="grid2">
     <article class="panel">
       <div class="panel-head"><div><h2>Signal analysis</h2><p>Transparent indicator checks</p></div></div>
-      <div class="signal-card"><div class="signal-big neutral" id="signalBig">WAIT</div><div id="signalSummary">Waiting for enough market data.</div></div>
-      <div class="metrics">
+  <div class="signal-card">
+  <div class="signal-big neutral" id="signalBig">WAIT</div>
+  <div id="signalSummary">Waiting for enough market data.</div>
+</div>
+
+<section class="panel backtest-panel">
+  <div class="panel-heading">
+    <div>
+      <h2>Strategy B Backtest</h2>
+      <p>EMA 9/21 · RSI 14 · Momentum confirmation</p>
+    </div>
+    <button id="runBacktest" type="button">Run Backtest</button>
+  </div>
+
+  <div class="backtest-grid">
+    <div class="metric"><span>Total Trades</span><strong id="btTrades">—</strong></div>
+    <div class="metric"><span>Win Rate</span><strong id="btWinRate">—</strong></div>
+    <div class="metric"><span>Net Result</span><strong id="btNet">—</strong></div>
+    <div class="metric"><span>Max Drawdown</span><strong id="btDrawdown">—</strong></div>
+    <div class="metric"><span>Profit Factor</span><strong id="btProfitFactor">—</strong></div>
+    <div class="metric"><span>Average Result</span><strong id="btAverage">—</strong></div>
+  </div>
+
+  <p id="btStatus">Run a backtest after historical candles load.</p>
+  <div id="btDetails"></div>
+</section>    <div class="metrics">
         <div><span>EMA trend</span><b id="emaMetric">—</b></div>
         <div><span>RSI (14)</span><b id="rsiMetric">—</b></div>
         <div><span>Volatility</span><b id="volMetric">—</b></div>
