@@ -327,5 +327,11 @@ function runStrategyBacktest() {
     </div>
   `).join("") || "No qualifying trades found in this candle sample.";
 }
-
-$("runBacktest")?.addEventListener("click", runStrategyBacktest);
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("runBacktest");
+  if (btn) {
+    btn.addEventListener("click", () => {
+      runStrategyBacktest();
+    });
+  }
+});
