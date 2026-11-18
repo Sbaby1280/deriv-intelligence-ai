@@ -206,7 +206,7 @@ function runStrategyBacktest() {
     : [];
 
   if (data.length < 50) {
-    $("btStatus").textContent = "Not enough candles. Load at least 50 candles first.";
+    document.getElementById("btStatus").textContent = "Not enough candles. Load at least 50 candles first.";
     return;
   }
  const closes = data.map(c => c.close);
@@ -310,20 +310,20 @@ function runStrategyBacktest() {
     ? grossProfit / grossLoss
     : grossProfit > 0 ? Infinity : 0;
 
-  $("btTrades").textContent = results.length;
-  $("btWinRate").textContent = results.length ? winRate.toFixed(1) + "%" : "—";
-  $("btNet").textContent = equity.toPrecision(5);
-  $("btDrawdown").textContent = maxDrawdown.toPrecision(5);
-  $("btProfitFactor").textContent =
+  document.getElementById("btTrades").textContent = results.length;
+  document.getElementById("btWinRate").textContent = results.length ? winRate.toFixed(1) + "%" : "—";
+  document.getElementById("btNet").textContent = equity.toPrecision(5);
+  document.getElementById("btDrawdown").textContent = maxDrawdown.toPrecision(5);
+  document.getElementById("btProfitFactor").textContent =
     profitFactor === Infinity ? "∞" : profitFactor.toFixed(2);
-  $("btAverage").textContent = results.length
+  document.getElementById("btAverage").textContent = results.length
     ? (equity / results.length).toPrecision(5)
     : "—";
 
-  $("btStatus").textContent =
+  document.getElementById("btStatus").textContent =
     `${wins} winning trades · ${losses} losing trades · ${results.length} total`;
 
-  $("btDetails").innerHTML = results.slice(-10).reverse().map(r => `
+  document.getElementById("btDetails").innerHTML = results.slice(-10).reverse().map(r => `
     <div class="backtest-result">
       <strong>${r.direction}</strong>
       <span>${r.outcome}</span>
