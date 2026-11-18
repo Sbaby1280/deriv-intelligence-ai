@@ -351,7 +351,18 @@ function runStrategyBacktest() {
   const wins = trades.filter(t => t.pnl > 0).length;
   const losses = trades.filter(t => t.pnl < 0).length;
   const winRate = trades.length ? wins / trades.length * 100 : 0;
-  const directionStats = list => {
+ 
+
+  const profitFactor = grossLoss > 0
+    ? grossProfit / grossLoss
+    : grossProfit > 0 ? Infinity : 0;
+
+  const buyTrades = trades.filter(t => t.direction === "BUY");
+  const sellTrades = trades.filter(t => t.direction === "SELL");
+
+  const buyWins = buyTrades.filter(t => t.pnl > 0).length;
+  const sellWins = sellTrades.filter(t => t.pnl > 0).length;
+   const directionStats = list => {
   const profit = list
     .filter(t => t.pnl > 0)
     .reduce((sum, t) => sum + t.pnl, 0);
@@ -368,16 +379,6 @@ function runStrategyBacktest() {
 
 const buyStats = directionStats(buyTrades);
 const sellStats = directionStats(sellTrades);
-
-  const profitFactor = grossLoss > 0
-    ? grossProfit / grossLoss
-    : grossProfit > 0 ? Infinity : 0;
-
-  const buyTrades = trades.filter(t => t.direction === "BUY");
-  const sellTrades = trades.filter(t => t.direction === "SELL");
-
-  const buyWins = buyTrades.filter(t => t.pnl > 0).length;
-  const sellWins = sellTrades.filter(t => t.pnl > 0).length;
 
   const fmt = n => Number(n).toFixed(3);
 
