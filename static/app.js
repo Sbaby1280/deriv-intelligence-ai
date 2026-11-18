@@ -23,43 +23,68 @@ function connect() {
     send({active_symbols:"brief"});
   };
   ws.onmessage = event => {
-    let msg; try { msg = JSON.parse(event.data); } catch { return; }
-    if (msg.error) { console.warn("Deriv API:", msg.error.message); return; }
-    if (msg.msg_type === "active_symbols" && Array.isArray(msg.active_symbols)) {
-  symbols = msg.active_symbols.map(s => ({
-    ...s,
-    symbol: s.underlying_symbol,
-    display_name: 
-s.underlying_symbol_name,
-    symbol_type: 
-s.underlying_symbol_type,
-    pip: s.pip_size,
-    market_display_name: s.market,
-    submarket_display_name: 
-s.submarket,
-    subgroup_display_name: 
-s.subgroup
-  })).filter(isSynthetic);
+  let msg;
+  try {
+    msg = JSON.parse(event.data);
+  } catch {
+    return;
+  }
 
-  renderMarkets();
-}
-      if (!selectedSymbol && symbols.length) selectMarket(symbols[0].symbol);
+  if (msg.error) {
+    console.warn("Deriv API:", msg.error.message);
+    return;
+  }
+
+  if (msg.msg_type === "active_symbols" && Array.isArray(msg.active_symbols)) {
+    symbols = msg.active_symbols.map(s => ({
+      ...s,
+      symbol: s.underlying_symbol,
+      display_name: s.underlying_symbol_name,
+      symbol_type: s.underlying_symbol_type,
+      pip: s.pip_size,
+      market_display_name: s.market,
+      submarket_display_name: s.submarket,
+      subgroup_display_name: s.subgroup
+    })).filter(isSynthetic);
+
+    renderMarkets();
+
+    if (!selectedSymbol && symbols.length) {
+      selectMarket(symbols[0].symbol);
     }
-    if (msg.msg_type === "history" && msg.history && msg.candles) {
-      candles = msg.candles.map(c => ({time:Number(c.epoch),open:Number(c.open),high:Number(c.high),low:Number(c.low),close:Number(c.close)})).filter(validCandle);
-      candles.sort((a,b)=>a.time-b.time);
-      candleSeries.setData(candles);
-      updateAnalysis();
-      if (msg.subscription?.id) historySubId = msg.subscription.id;
-    }
-    if (msg.msg_type === "tick" && msg.tick) {
-      tickCount++;
-      $("lastPrice").textContent = Number(msg.tick.quote).toLocaleString(undefined,{maximumFractionDigits:8});
-      $("lastUpdate").textContent = "Updated " + new Date(msg.tick.epoch*1000).toLocaleTimeString();
-      updateLiveCandle(Number(msg.tick.epoch), Number(msg.tick.quote));
-      if (msg.subscription?.id) tickSubId = msg.subscription.id;
-    }
-  };
+  }
+
+  if (msg.msg_type === "history" && msg.history && msg.candles) {
+    candles = msg.candles.map(c => ({
+      time: Number(c.epoch),
+      open: Number(c.open),
+      high: Number(c.high),
+      low: Number(c.low),
+      close: Number(c.close)
+    })).filter(validCandle);
+
+    candles.sort((a, b) => a.time - b.time);
+    candleSeries.setData(candles);
+    updateAnalysis();
+
+    if (msg.subscription?.id) historySubId = msg.subscription.id;
+  }
+
+  if (msg.msg_type === "tick" && msg.tick) {
+    tickCount++;
+
+    $("lastPrice").textContent = Number(msg.tick.quote).toLocaleString(undefined, {
+      maximumFractionDigits: 8
+    });
+
+    $("lastUpdate").textContent =
+      "Updated " + new Date(msg.tick.epoch * 1000).toLocaleTimeString();
+
+    updateLiveCandle(Number(msg.tick.epoch), Number(msg.tick.quote));
+
+    if (msg.subscription?.id) tickSubId = msg.subscription.id;
+  }
+};
   ws.onerror = () => setConnection("bad", "Connection issue");
   ws.onclose = () => { setConnection("bad", "Disconnected — reconnecting"); scheduleReconnect(); };
 }
