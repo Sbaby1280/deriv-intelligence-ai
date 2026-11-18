@@ -118,6 +118,7 @@ function forgetSubscriptions() {
 }
 function selectMarket(symbol) {
   if (!symbol || !ws || ws.readyState!==WebSocket.OPEN) return;
+   window.getMarketCandles = () => candles;
   forgetSubscriptions(); selectedSymbol=symbol;
   const s=symbols.find(x=>x.symbol===symbol); selectedName=s?.display_name||symbol;
   $("marketName").textContent=selectedName; $("symbolCode").textContent=symbol;
