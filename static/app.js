@@ -20,7 +20,7 @@ function connect() {
   try { ws = new WebSocket(WS_URL); } catch (e) { setConnection("bad", "Connection failed"); scheduleReconnect(); return; }
   ws.onopen = () => {
     reconnectDelay = 1500; setConnection("ok", "Connected");
-    send({active_symbols:"brief", product_type:"basic"});
+    send({active_symbols:"brief"});
   };
   ws.onmessage = event => {
     let msg; try { msg = JSON.parse(event.data); } catch { return; }
