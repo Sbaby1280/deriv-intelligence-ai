@@ -54,8 +54,7 @@ function connect() {
     }
   }
 
-  if (msg.msg_type === "history" && msg.history && msg.candles) {
-    candles = msg.candles.map(c => ({
+if (msg.msg_type === "candles" && Array.isArray(msg.candles)) {    candles = msg.candles.map(c => ({
       time: Number(c.epoch),
       open: Number(c.open),
       high: Number(c.high),
