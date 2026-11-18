@@ -327,11 +327,29 @@ function runStrategyBacktest() {
     </div>
   `).join("") || "No qualifying trades found in this candle sample.";
 }
-document.addEventListener("DOMContentLoaded", () => {
+function connectBacktestButton() {
   const btn = document.getElementById("runBacktest");
-  if (btn) {
-    btn.addEventListener("click", () => {
-      runStrategyBacktest();
-    });
+
+  if (!btn) {
+    console.error("Backtest button not found.");
+    return;
   }
-});
+
+  btn.addEventListener("click", () => {
+    const status = document.getElementById("btStatus");
+    status.textContent = "Running backtest...";
+
+    try {
+      runStrategyBacktest();
+    } catch (error) {
+      console.error("Backtest error:", error);
+      status.textContent = "Backtest error: " + error.message;
+    }
+  });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", connectBacktestButton);
+} else {
+  connectBacktestButton();
+}
