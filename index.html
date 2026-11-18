@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b1220">
+  <meta name="description" content="Deriv Intelligence AI — read-only synthetic indices research dashboard">
+  <title>Deriv Intelligence AI</title>
+  <link rel="stylesheet" href="static/styles.css">
+  <script src="https://unpkg.com/lightweight-charts@4.2.2/dist/lightweight-charts.standalone.production.js"></script>
+  <script defer src="static/app.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brandmark">DI</div>
+  <div class="brand"><strong>Deriv Intelligence AI</strong><small>Market research terminal</small></div>
+  <div class="connection"><span id="connDot" class="dot"></span><span id="connText">Connecting…</span></div>
+</header>
+<main class="wrap">
+  <section class="notice"><b>READ-ONLY RESEARCH MODE</b><span>No trades are placed. Signals are experimental research outputs, not financial advice or promises of profit.</span></section>
+  <section class="toolbar panel">
+    <label>Market<select id="marketSelect"><option>Loading synthetic markets…</option></select></label>
+    <label>Timeframe<select id="timeframe">
+      <option value="60">1 minute</option><option value="120">2 minutes</option><option value="180">3 minutes</option>
+      <option value="300" selected>5 minutes</option><option value="600">10 minutes</option><option value="900">15 minutes</option>
+      <option value="1800">30 minutes</option><option value="3600">1 hour</option><option value="7200">2 hours</option>
+      <option value="14400">4 hours</option><option value="28800">8 hours</option><option value="86400">1 day</option>
+    </select></label>
+    <button id="refreshBtn" class="btn">Refresh data</button>
+  </section>
+  <section class="stats">
+    <article class="stat panel"><span>Selected market</span><strong id="marketName">—</strong><small id="symbolCode">Waiting for feed</small></article>
+    <article class="stat panel"><span>Latest quote</span><strong id="lastPrice">—</strong><small id="lastUpdate">No tick yet</small></article>
+    <article class="stat panel"><span>Signal research</span><strong id="signalState" class="neutral">WAIT</strong><small id="signalReason">Collecting candles</small></article>
+  </section>
+  <section class="panel chart-panel">
+    <div class="panel-head"><div><h2>Price chart</h2><p id="chartCaption">Live candle feed</p></div><span class="live-tag">● LIVE DATA</span></div>
+    <div id="chart"></div>
+  </section>
+  <section class="grid2">
+    <article class="panel">
+      <div class="panel-head"><div><h2>Signal analysis</h2><p>Transparent indicator checks</p></div></div>
+      <div class="signal-card"><div class="signal-big neutral" id="signalBig">WAIT</div><div id="signalSummary">Waiting for enough market data.</div></div>
+      <div class="metrics">
+        <div><span>EMA trend</span><b id="emaMetric">—</b></div>
+        <div><span>RSI (14)</span><b id="rsiMetric">—</b></div>
+        <div><span>Volatility</span><b id="volMetric">—</b></div>
+        <div><span>Confidence score</span><b id="scoreMetric">—</b></div>
+      </div>
+      <p class="hint">The score measures agreement between simple indicators. It is not a probability of winning.</p>
+    </article>
+    <article class="panel">
+      <div class="panel-head"><div><h2>Research log</h2><p>Signals generated in this browser session</p></div><button id="clearLog" class="text-btn">Clear</button></div>
+      <div id="signalLog" class="log"><div class="empty">No signals recorded yet.</div></div>
+    </article>
+  </section>
+  <section class="panel">
+    <div class="panel-head"><div><h2>Available synthetic markets</h2><p>Choose an instrument to inspect</p></div><input id="marketSearch" class="search" placeholder="Search markets…"></div>
+    <div id="marketList" class="market-list"><div class="empty">Loading market list…</div></div>
+  </section>
+  <section class="panel footer-panel">
+    <div><h2>Alerts & testing</h2><p>Browser alerts work when permission is granted. Telegram setup is planned for a later hosted version.</p></div>
+    <div class="actions"><button id="notifyBtn" class="btn secondary">Enable browser alerts</button><button id="testAlertBtn" class="btn secondary">Test alert</button></div>
+    <p id="alertStatus" class="hint"></p>
+  </section>
+  <footer>Deriv Intelligence AI · MVP 0.1 · Public market data only · Not affiliated with Deriv</footer>
+</main>
+</body>
+</html>
