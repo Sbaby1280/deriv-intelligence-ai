@@ -390,6 +390,17 @@ const sellStats = directionStats(sellTrades);
     profitFactor === Infinity ? "∞" : profitFactor.toFixed(2);
   document.getElementById("btAverage").textContent =
     trades.length ? fmt(equity / trades.length) : "—";
+  document.getElementById("btBuyNet").textContent =
+  fmt(buyStats.net);
+
+document.getElementById("btBuyPF").textContent =
+  buyStats.factor === Infinity ? "∞" : buyStats.factor.toFixed(2);
+
+document.getElementById("btSellNet").textContent =
+  fmt(sellStats.net);
+
+document.getElementById("btSellPF").textContent =
+  sellStats.factor === Infinity ? "∞" : sellStats.factor.toFixed(2);
 
   status.textContent =
     `${wins} wins · ${losses} losses · ${trades.length} trades · ${data.length} candles`;
