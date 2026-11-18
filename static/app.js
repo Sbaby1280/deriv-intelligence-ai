@@ -126,7 +126,7 @@ function selectMarket(symbol) {
   $("marketSelect").value=symbol; renderMarkets(); candles=[]; tickCount=0; lastSignalKey="";
   candleSeries.setData([]);
   const granularity=Number($("timeframe").value);
-  send({ticks_history:symbol,count:300,end:"latest",style:"candles",granularity,subscribe:1});
+  send({ticks_history:symbol,count:2000,end:"latest",style:"candles",granularity,subscribe:1});
   send({ticks:symbol,subscribe:1});
   $("signalState").textContent="WAIT"; $("signalReason").textContent="Loading history";
 }
