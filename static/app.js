@@ -141,13 +141,13 @@ function updateLiveCandle(epoch, price) {
   } else return;
   candleSeries.update(last); updateAnalysis();
 }
-function ema(values, period) {
+function ema(values, period) {window.runEMA = ema;
   if(values.length<period)return null;
   const k=2/(period+1); let v=values.slice(0,period).reduce((a,b)=>a+b,0)/period;
   for(let i=period;i<values.length;i++)v=values[i]*k+v*(1-k);
   return v;
 }
-function rsi(values, period=14) {
+function rsi(values, period=14) {window.runRSI = rsi;
   if(values.length<=period)return null;
   let gains=0,losses=0;
   for(let i=values.length-period;i<values.length;i++){const d=values[i]-values[i-1];if(d>0)gains+=d;else losses-=d;}
@@ -219,9 +219,9 @@ function runStrategyBacktest() {
 
   for (let i = 35; i < data.length - 2; i++) {
     const history = closes.slice(0, i + 1);
-    const fast = ema(history, 9);
-    const slow = ema(history, 21);
-    const rv = rsi(history);
+    const fast = window.runEMA(history, 9);
+    const slow = window.runEMA(history, 21);
+    const rv = window.runRSI(history);
 
     const momentum = closes[i] - closes[i - 3];
 
