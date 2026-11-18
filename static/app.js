@@ -247,11 +247,9 @@ function runStrategyBacktest() {
 
     let direction = null;
 
-    if (fast > slow && rv > 50 && rv < 70 && momentum > 0) {
-      direction = "BUY";
-    } else if (fast < slow && rv < 50 && rv > 30 && momentum < 0) {
-      direction = "SELL";
-    }
+   if (fast > slow && rv > 50 && rv < 70 && momentum > 0) {
+  direction = "BUY";
+}
 
     if (!direction) {
       i++;
