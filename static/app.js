@@ -3,6 +3,7 @@
 const WS_URL = "wss://api.derivws.com/trading/v1/options/ws/public";
 const $ = id => document.getElementById(id);
 let ws, reconnectTimer, symbols = [], candles = [], selectedSymbol = "", selectedName = "";
+window.getMarketCandles = () => candles;
 let chart, candleSeries, tickSubId = null, historySubId = null, lastSignalKey = "";
 let reconnectDelay = 1500, tickCount = 0;
 const logItems = [];
@@ -200,13 +201,15 @@ $("testAlertBtn").addEventListener("click",()=>{if("Notification"in window&&Noti
 initChart(); connect();
 })();
 function runStrategyBacktest() {
-  if (candles.length < 50) {
+  const data = window.getMarketCandles
+    ? window.getMarketCandles()
+    : [];
+
+  if (data.length < 50) {
     $("btStatus").textContent = "Not enough candles. Load at least 50 candles first.";
     return;
   }
-
-  const data = window.getMarketCandles ? window.getMarketCandles() : [];
-  const closes = data.map(c => c.close);
+ const closes = data.map(c => c.close);
   const results = [];
   let equity = 0;
   let peak = 0;
