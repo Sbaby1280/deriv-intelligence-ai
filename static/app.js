@@ -29,12 +29,16 @@ function connect() {
   symbols = msg.active_symbols.map(s => ({
     ...s,
     symbol: s.underlying_symbol,
-    display_name: s.underlying_symbol_name,
-    symbol_type: s.underlying_symbol_type,
+    display_name: 
+s.underlying_symbol_name,
+    symbol_type: 
+s.underlying_symbol_type,
     pip: s.pip_size,
     market_display_name: s.market,
-    submarket_display_name: s.submarket,
-    subgroup_display_name: s.subgroup
+    submarket_display_name: 
+s.submarket,
+    subgroup_display_name: 
+s.subgroup
   })).filter(isSynthetic);
 
   renderMarkets();
