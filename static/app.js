@@ -6,6 +6,9 @@ let ws, reconnectTimer, symbols = [], candles = [], selectedSymbol = "", selecte
 window.getMarketCandles = () => candles;
 let chart, candleSeries, tickSubId = null, historySubId = null, lastSignalKey = "";
 let reconnectDelay = 1500, tickCount = 0;
+let historyPageReqId = 100;
+let historyPagesLoaded = 0;
+let historyOldestEpoch = null;
 const logItems = [];
 
 function setConnection(state, label) {
